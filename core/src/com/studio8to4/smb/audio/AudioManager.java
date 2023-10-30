@@ -1,6 +1,7 @@
 package com.studio8to4.smb.audio;
 
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.studio8to4.smb.di.DIContainer;
 
@@ -16,5 +17,9 @@ public class AudioManager {
 
     public void playSound(String id){
         assetManager.get("audio/sounds/"+id+".wav", Sound.class).play();
+    }
+
+    public void stopMusic(String id) {
+        assetManager.get("audio/music/"+id+".ogg", Music.class).stop();
     }
 }

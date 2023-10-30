@@ -1,6 +1,8 @@
 package com.studio8to4.smb.sprite.tileobject;
 
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.maps.MapObject;
+import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTile;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
@@ -17,6 +19,8 @@ import com.studio8to4.smb.SMBGame;
 import com.studio8to4.smb.audio.AudioManager;
 import com.studio8to4.smb.di.DIContainer;
 import com.studio8to4.smb.scene.HUD;
+import com.studio8to4.smb.screen.PlayScreen;
+import com.studio8to4.smb.sprite.Mario;
 
 import javax.inject.Inject;
 
@@ -32,11 +36,15 @@ public abstract class InteractiveTileObject {
 	protected Rectangle bounds;
 	protected Body body;
 	protected Fixture fixture;
+	protected MapObject object;
+	protected PlayScreen screen;
 	
-	public InteractiveTileObject(World world, TiledMap map, Rectangle bounds) {
-		this.world = world;
-		this.map = map;
-		this.bounds = bounds;
+	public InteractiveTileObject(PlayScreen screen, MapObject object) {
+		this.object = object;
+		this.world = screen.getB2dworld();
+		this.map = screen.getMap();
+		this.screen = screen;
+		this.bounds = ((RectangleMapObject)object).getRectangle();
 
 		DIContainer.getFeather().injectFields(this);
 		
@@ -53,7 +61,7 @@ public abstract class InteractiveTileObject {
 		fixture = body.createFixture(fdef);
 	}
 	
-	public abstract void onHeadHit();
+	public abstract void onHeadHit(Mario mario);
 	
 	public void setCategoryFilter(short filterBit) {
 		Filter filter = new Filter();

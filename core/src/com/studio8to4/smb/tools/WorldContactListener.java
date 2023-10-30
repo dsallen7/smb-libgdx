@@ -9,6 +9,8 @@ import com.badlogic.gdx.physics.box2d.Manifold;
 import com.studio8to4.smb.SMBGame;
 import com.studio8to4.smb.sprite.Mario;
 import com.studio8to4.smb.sprite.enemy.Enemy;
+import com.studio8to4.smb.sprite.item.Item;
+import com.studio8to4.smb.sprite.other.FireBall;
 import com.studio8to4.smb.sprite.tileobject.InteractiveTileObject;
 
 public class WorldContactListener implements ContactListener {
@@ -20,22 +22,19 @@ public class WorldContactListener implements ContactListener {
 
 		int cDef = fixA.getFilterData().categoryBits | fixB.getFilterData().categoryBits;
 
-		if(fixA.getUserData() instanceof  Mario || fixB.getUserData() instanceof Mario) {
-			Fixture head = fixA.getUserData() instanceof Mario ? fixA : fixB;
-			Fixture object = head == fixA ? fixB : fixA;
-			
-			if(object.getUserData() != null && InteractiveTileObject.class.isAssignableFrom(object.getUserData().getClass())) {
-				((InteractiveTileObject)object.getUserData()).onHeadHit();
-				((Mario)head.getUserData()).onHeadHit();
-			}
-		}
-
-		switch(cDef){
+		switch (cDef){
+			case SMBGame.MARIO_HEAD_BIT | SMBGame.BRICK_BIT:
+			case SMBGame.MARIO_HEAD_BIT | SMBGame.COIN_BIT:
+				if(fixA.getFilterData().categoryBits == SMBGame.MARIO_HEAD_BIT)
+					((InteractiveTileObject) fixB.getUserData()).onHeadHit((Mario) fixA.getUserData());
+				else
+					((InteractiveTileObject) fixA.getUserData()).onHeadHit((Mario) fixB.getUserData());
+				break;
 			case SMBGame.ENEMY_HEAD_BIT | SMBGame.MARIO_BIT:
 				if(fixA.getFilterData().categoryBits == SMBGame.ENEMY_HEAD_BIT)
-					((Enemy)fixA.getUserData()).hitOnHead();
-				else if(fixB.getFilterData().categoryBits == SMBGame.ENEMY_HEAD_BIT)
-					((Enemy)fixB.getUserData()).hitOnHead();
+					((Enemy)fixA.getUserData()).hitOnHead((Mario) fixB.getUserData());
+				else
+					((Enemy)fixB.getUserData()).hitOnHead((Mario) fixA.getUserData());
 				break;
 			case SMBGame.ENEMY_BIT | SMBGame.OBJECT_BIT:
 				if(fixA.getFilterData().categoryBits == SMBGame.ENEMY_BIT)
@@ -43,12 +42,33 @@ public class WorldContactListener implements ContactListener {
 				else
 					((Enemy)fixB.getUserData()).reverseVelocity(true, false);
 				break;
-			case SMBGame.ENEMY_BIT | SMBGame.ENEMY_BIT:
-				((Enemy)fixA.getUserData()).reverseVelocity(true, false);
-				((Enemy)fixB.getUserData()).reverseVelocity(true, false);
-				break;
 			case SMBGame.MARIO_BIT | SMBGame.ENEMY_BIT:
-				Gdx.app.log("MARIO", "DIED");
+				if(fixA.getFilterData().categoryBits == SMBGame.MARIO_BIT)
+					((Mario) fixA.getUserData()).hit((Enemy)fixB.getUserData());
+				else
+					((Mario) fixB.getUserData()).hit((Enemy)fixA.getUserData());
+				break;
+			case SMBGame.ENEMY_BIT | SMBGame.ENEMY_BIT:
+				((Enemy)fixA.getUserData()).hitByEnemy((Enemy)fixB.getUserData());
+				((Enemy)fixB.getUserData()).hitByEnemy((Enemy)fixA.getUserData());
+				break;
+			case SMBGame.ITEM_BIT | SMBGame.OBJECT_BIT:
+				if(fixA.getFilterData().categoryBits == SMBGame.ITEM_BIT)
+					((Item)fixA.getUserData()).reverseVelocity(true, false);
+				else
+					((Item)fixB.getUserData()).reverseVelocity(true, false);
+				break;
+			case SMBGame.ITEM_BIT | SMBGame.MARIO_BIT:
+				if(fixA.getFilterData().categoryBits == SMBGame.ITEM_BIT)
+					((Item)fixA.getUserData()).use((Mario) fixB.getUserData());
+				else
+					((Item)fixB.getUserData()).use((Mario) fixA.getUserData());
+				break;
+			case SMBGame.FIREBALL_BIT | SMBGame.OBJECT_BIT:
+				if(fixA.getFilterData().categoryBits == SMBGame.FIREBALL_BIT)
+					((FireBall)fixA.getUserData()).setToDestroy();
+				else
+					((FireBall)fixB.getUserData()).setToDestroy();
 				break;
 		}
 	}

@@ -13,6 +13,7 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.studio8to4.smb.SMBGame;
@@ -20,10 +21,14 @@ import com.studio8to4.smb.di.DIContainer;
 import com.studio8to4.smb.scene.HUD;
 import com.studio8to4.smb.sprite.enemy.Enemy;
 import com.studio8to4.smb.sprite.Mario;
+import com.studio8to4.smb.sprite.item.Item;
+import com.studio8to4.smb.sprite.item.ItemDef;
+import com.studio8to4.smb.sprite.item.Mushroom;
 import com.studio8to4.smb.tools.B2WorldCreator;
 import com.studio8to4.smb.tools.WorldContactListener;
 
 import javax.inject.Inject;
+import java.util.PriorityQueue;
 
 public class PlayScreen implements Screen {
 
@@ -48,6 +53,9 @@ public class PlayScreen implements Screen {
 	private Mario mario;
 
 	private Music mainTheme;
+
+	private Array<Item> items;
+	private PriorityQueue<ItemDef> itemsToSpawn;
 	
 	public PlayScreen(SMBGame game) {
 		this.game = game;
@@ -73,6 +81,22 @@ public class PlayScreen implements Screen {
 		mainTheme.setVolume(0.25f);
 		mainTheme.setLooping(true);
 		mainTheme.play();
+
+		items = new Array<Item>();
+		itemsToSpawn = new PriorityQueue<ItemDef>();
+	}
+
+	public void spawnItem(ItemDef itemDef){
+		itemsToSpawn.add(itemDef);
+	}
+
+	public void handleSpawningItems(){
+		if(!itemsToSpawn.isEmpty()){
+			ItemDef itemDef = itemsToSpawn.poll();
+			if(itemDef.type == Mushroom.class){
+				items.add(new Mushroom(this, itemDef.position.x, itemDef.position.y));
+			}
+		}
 	}
 	
 	public void update(float delta) {

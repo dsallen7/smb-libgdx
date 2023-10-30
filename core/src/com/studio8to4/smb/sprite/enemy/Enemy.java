@@ -5,14 +5,18 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
+import com.studio8to4.smb.audio.AudioManager;
 import com.studio8to4.smb.di.DIContainer;
 import com.studio8to4.smb.screen.PlayScreen;
+import com.studio8to4.smb.sprite.Mario;
 
 import javax.inject.Inject;
 
 public abstract class Enemy extends Sprite {
     @Inject
     protected AssetManager assetManager;
+    @Inject
+    protected AudioManager audioManager;
     protected World b2dworld;
     protected PlayScreen screen;
     public Body b2Body;
@@ -30,7 +34,8 @@ public abstract class Enemy extends Sprite {
 
     protected abstract void defineEnemy();
 
-    public abstract void hitOnHead();
+    public abstract void hitOnHead(Mario mario);
+    public abstract void hitByEnemy(Enemy enemy);
 
     public void reverseVelocity(boolean x, boolean y){
         if(x)

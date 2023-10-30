@@ -8,17 +8,14 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.CircleShape;
-import com.badlogic.gdx.physics.box2d.EdgeShape;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.utils.Array;
 import com.studio8to4.smb.SMBGame;
 import com.studio8to4.smb.audio.AudioManager;
 import com.studio8to4.smb.di.DIContainer;
 import com.studio8to4.smb.screen.PlayScreen;
+import com.studio8to4.smb.sprite.enemy.Enemy;
+import com.studio8to4.smb.sprite.enemy.Turtle;
 
 import javax.inject.Inject;
 
@@ -36,6 +33,11 @@ public class Mario extends Sprite {
 	private Animation<TextureRegion> marioRun, marioJump;
 	private float stateTimer;
 	private boolean runningRight;
+	private boolean marioIsBig;
+	private boolean runGrowAnimation;
+	private boolean timeToDefineBigMario;
+	private boolean timeToRedefineMario;
+	private boolean marioIsDead;
 	
 	public Mario(World world, PlayScreen screen) {
 		super(screen.getAtlas().findRegion("little_mario"));
@@ -126,10 +128,9 @@ public class Mario extends Sprite {
 				SMBGame.ENEMY_BIT |
 				SMBGame.OBJECT_BIT |
 				SMBGame.ENEMY_HEAD_BIT;
-		
 		fdef.shape = shape;
 		
-		b2Body.createFixture(fdef);
+		b2Body.createFixture(fdef).setUserData(this);
 		
 		EdgeShape head = new EdgeShape();
 		head.set(new Vector2(-2 / SMBGame.PPM, 7 / SMBGame.PPM), new Vector2(2 / SMBGame.PPM, 7 / SMBGame.PPM));
@@ -161,8 +162,75 @@ public class Mario extends Sprite {
 		}
 	}
 
+	public void hit(Enemy enemy){
+		if(enemy instanceof Turtle && ((Turtle) enemy).currentState == Turtle.State.STANDING_SHELL)
+			((Turtle) enemy).kick(enemy.b2Body.getPosition().x > b2Body.getPosition().x ? Turtle.KICK_RIGHT : Turtle.KICK_LEFT);
+		else {
+			if (marioIsBig) {
+				marioIsBig = false;
+				timeToRedefineMario = true;
+				setBounds(getX(), getY(), getWidth(), getHeight() / 2);
+				audioManager.playSound("powerdown");
+			} else {
+				die();
+			}
+		}
+	}
+
+	public void grow(){
+		if( !isBig() ) {
+			runGrowAnimation = true;
+			marioIsBig = true;
+			timeToDefineBigMario = true;
+			setBounds(getX(), getY(), getWidth(), getHeight() * 2);
+			audioManager.playSound("powerup");
+		}
+	}
+
+
+	public void die() {
+
+		if (!isDead()) {
+
+			audioManager.stopMusic("mario_music");
+			audioManager.playSound("mariodie");
+			marioIsDead = true;
+			Filter filter = new Filter();
+			filter.maskBits = SMBGame.NOTHING_BIT;
+
+			for (Fixture fixture : b2Body.getFixtureList()) {
+				fixture.setFilterData(filter);
+			}
+
+			b2Body.applyLinearImpulse(new Vector2(0, 4f), b2Body.getWorldCenter(), true);
+		}
+	}
+
+	public boolean isDead(){
+		return marioIsDead;
+	}
+
+	public float getStateTimer(){
+		return stateTimer;
+	}
+
+	public boolean isBig(){
+		return marioIsBig;
+	}
+
 	public void onHeadHit() {
-		b2Body.setLinearVelocity(b2Body.getLinearVelocity().x, -b2Body.getLinearVelocity().y);
+		reverseVelocity(false, true);
 		this.currentState = MarioState.FALLING;
+	}
+
+	public void onJumpEnemy(){
+		reverseVelocity(false, true);
+	}
+
+	public void reverseVelocity(boolean x, boolean y){
+		if(x)
+			b2Body.setLinearVelocity(-b2Body.getLinearVelocity().x, b2Body.getLinearVelocity().y);
+		if(y)
+			b2Body.setLinearVelocity(b2Body.getLinearVelocity().x, -b2Body.getLinearVelocity().y);
 	}
 }

@@ -5,6 +5,7 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.studio8to4.smb.di.AssetModule;
 import com.studio8to4.smb.di.DIContainer;
 import com.studio8to4.smb.di.UiModule;
@@ -19,6 +20,9 @@ public class SMBGame extends Game {
 	public static final int V_HEIGHT = 208;
 	public static final float PPM = 100;
 
+
+	//Box2D Collision Bits
+	public static final short NOTHING_BIT = 0;
 	public static final short GROUND_BIT = 1;
 	public static final short MARIO_BIT = 2;
 	public static final short BRICK_BIT = 4;
@@ -27,6 +31,9 @@ public class SMBGame extends Game {
 	public static final short OBJECT_BIT = 32;
 	public static final short ENEMY_BIT = 64;
 	public static final short ENEMY_HEAD_BIT = 128;
+	public static final short ITEM_BIT = 256;
+	public static final short MARIO_HEAD_BIT = 512;
+	public static final short FIREBALL_BIT = 1024;
 
 
 	@Inject
@@ -45,7 +52,10 @@ public class SMBGame extends Game {
 		assetManager.load("audio/sounds/jump.wav", Sound.class);
 		assetManager.load("audio/sounds/bump.wav", Sound.class);
 		assetManager.load("audio/sounds/stomp.wav", Sound.class);
+		assetManager.load("audio/sounds/mariodie.wav", Sound.class);
 		assetManager.load("audio/sounds/breakblock.wav", Sound.class);
+
+		assetManager.load("MarioAndEnemies.atlas", TextureAtlas.class);
 
 		assetManager.finishLoading();
 
